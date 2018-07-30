@@ -27,6 +27,17 @@ class VideoPlay(
       "|joinCode:" + joinCode +
       "|syllabusId:" + syllabusId
 
+  def show: String = rid +
+      "," + playTime +
+      "," + wholeTime +
+      "," + userPlayTime +
+      "," + roomId +
+      "," + sessionId +
+      "," + videoIdWithTeacher +
+      "," + videoIdWithoutTeacher +
+      "," + joinCode +
+      "," + syllabusId
+
 }
 
 

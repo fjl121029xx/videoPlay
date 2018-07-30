@@ -1,0 +1,2 @@
+2018-07-26 15:08:50  INFO MyClass [main:MyClass.doStuff(LogTest.scala:16)] Doing stuff
+2018-07-26 15:31:34  INFO MyClass [main:MyClass.doStuff(LogTest.scala:16)] Doing stuff

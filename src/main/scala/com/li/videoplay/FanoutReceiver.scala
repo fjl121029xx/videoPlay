@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.li.videoplay.bean.VideoPlay
 import com.li.videoplay.mqutil.{RabbitMQConnHandler, RabbitMQConsumer}
+import org.apache.logging.log4j.{LogManager, Logger}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.receiver.Receiver
+
 
 class FanoutReceiver(
                       ssm: StreamingContext,
@@ -20,6 +22,8 @@ class FanoutReceiver(
   private val queueName = "log-fb4"
   private var mqThread: Unit = null;
   val mapper = new ObjectMapper()
+
+  val logger: Logger = LogManager.getLogger(this.getClass)
 
   override def onStart(): Unit = {
     mapper.registerModule(DefaultScalaModule)
@@ -41,7 +45,7 @@ class FanoutReceiver(
     val mqHandler = new RabbitMQConnHandler(rabbitmqHost, rabbitmqPort, rabbitmqUsername, rabbitmqPassword)
 
     var fanoutChannnel = mqHandler.getFanoutDeclareChannel(exchangeName)
-
+    //    val my = new MyLog4j2
 
     val consumer = new RabbitMQConsumer(fanoutChannnel, queueName)
 
@@ -51,10 +55,31 @@ class FanoutReceiver(
         val (msg, deliveryTag) = r.right.get
         if (deliveryTag > 0) {
           val message = msg.split("=")
-          val obj = mapper.readValue(message(3).toString, classOf[VideoPlay])
-          val str = message(0) + "=" + message(1) + "=" + message(2) + "=" + obj.toString + "=" + message(4)
+          val obj = mapper.readValue(message(3), classOf[VideoPlay])
+          val str = message(0) + "=" + message(1) + "=" + message(2) + "=" + obj.show + "=" + message(4)
           store(str)
 
+          val date = message(4).split("_");
+
+          val recordYear = date(0)
+          val recordMonth = date(1)
+          val recordDay = date(2)
+          val recordHour = date(3)
+          val recordMinute = date(3) + date(4)
+
+
+          val log = message(0) + "," +
+            message(1) + "," +
+            message(2) + "," +
+            obj.show + "," +
+            recordYear + "," +
+            recordMonth + "," +
+            recordDay + "," +
+            recordHour + "," +
+            recordMinute
+
+          logger.info(log)
+          //          my.doStuff(str)
           consumer.basicAck(deliveryTag)
         } else {
           Thread.sleep(1000)
@@ -74,3 +99,4 @@ class FanoutReceiver(
   }
 
 }
+

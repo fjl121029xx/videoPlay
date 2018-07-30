@@ -1,0 +1,15 @@
+2018-07-30 17:23:15.525 [] [main] [INFO ] MyClass@ - Doing stuff
+2018-07-30 17:23:15.550 [] [main] [INFO ] MyClass@ - Doing stuff
+2018-07-30 17:23:15.550 [] [main] [INFO ] MyClass@ - Doing stuff
+2018-07-30 17:23:15.550 [] [main] [INFO ] MyClass@ - Doing stuff
+2018-07-30 17:27:52.112 [] [main] [INFO ] MyClass@ - Doing stuff
+2018-07-30 17:27:52.125 [] [main] [INFO ] MyClass@ - Doing stuff
+2018-07-30 17:27:52.125 [] [main] [INFO ] MyClass@ - Doing stuff
+2018-07-30 17:27:52.125 [] [main] [INFO ] MyClass@ - Doing stuff
+2018-07-30 17:36:39.495 [] [Thread-14] [INFO ] c.l.v.FanoutReceiver@ - 6.3.1=1=app_ztk618388060=rid:null|playTime:110|wholeTime:120|userPlayTime:119|roomId:null|sessionId:null|videoIdWithTeacher:10010|videoIdWithoutTeacher:null|joinCode:null|syllabusId:0=2018_07_30_17_35
+
+#cv,terminal,username,rid,playTime,wholeTime,userPlayTime,roomId,sessionId,videoIdWithTeacher,videoIdWithoutTeacher,joinCode,syllabusId,recordYear,recordMonth,recordDay,recordHour,recordMinute
+6.3.1,1,app_ztk618388060,null,110,120,119,null,null,10010,null,null,0,2018,07,30,17,1749
+6.3.1,1,app_ztk618388060,null,110,120,119,null,null,10010,null,null,0,2018,07,30,17,1749
+6.3.1,1,app_ztk618388060,null,110,120,119,null,null,10010,null,null,0,2018,07,30,17,1749
+6.3.1,1,app_ztk618388060,null,110,120,119,null,null,10010,null,null,0,2018,07,30,17,1749

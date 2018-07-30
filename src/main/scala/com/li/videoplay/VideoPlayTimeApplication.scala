@@ -90,7 +90,7 @@ object VideoPlayTimeApplication {
 
     val sparkConf = new SparkConf()
       .setAppName("VideoPlayTimeApplication")
-      .setMaster("local[2]")
+//      .setMaster("local[2]")
 
     val ssc = new StreamingContext(sparkConf, Seconds(5))
     ssc.checkpoint(checkPointinPath)
