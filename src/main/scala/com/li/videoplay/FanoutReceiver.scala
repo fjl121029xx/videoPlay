@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.li.videoplay.bean.VideoPlay
 import com.li.videoplay.mqutil.{RabbitMQConnHandler, RabbitMQConsumer}
-import org.apache.logging.log4j.{LogManager, Logger}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.receiver.Receiver
 
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 
 class FanoutReceiver(
                       ssm: StreamingContext,
@@ -23,7 +24,8 @@ class FanoutReceiver(
   private var mqThread: Unit = null;
   val mapper = new ObjectMapper()
 
-  val logger: Logger = LogManager.getLogger(this.getClass)
+  //  val logger: Logger = LogManager.getLogger(this.getClass)
+  val logger: Log = LogFactory.getLog(classOf[FanoutReceiver])
 
   override def onStart(): Unit = {
     mapper.registerModule(DefaultScalaModule)
@@ -56,7 +58,7 @@ class FanoutReceiver(
         if (deliveryTag > 0) {
           val message = msg.split("=")
           val obj = mapper.readValue(message(3), classOf[VideoPlay])
-          val str = message(0) + "=" + message(1) + "=" + message(2) + "=" + obj.show + "=" + message(4)
+          val str = message(0) + "=" + message(1) + "=" + message(2) + "=" + obj.toString + "=" + message(4)
           store(str)
 
           val date = message(4).split("_");
@@ -78,7 +80,7 @@ class FanoutReceiver(
             recordHour + "," +
             recordMinute
 
-          logger.info(log)
+          logger.info("FanoutReceiver-233," + log)
           //          my.doStuff(str)
           consumer.basicAck(deliveryTag)
         } else {

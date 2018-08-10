@@ -14,7 +14,9 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapred.JobConf
 
 object VideoPlayTimeApplication {
-  val checkPointinPath = "D:\\tmp\\checkpoint"
+
+//  val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreaming/videoplay/checkpoint/data"
+    val checkPointinPath = "D:\\tmp\\checkpoint"
   val rabbitmqHost = "192.168.100.21"
   val rabbitmqPort = 5672
   val rabbitmqUser = "rabbitmq_ztk"
@@ -90,7 +92,7 @@ object VideoPlayTimeApplication {
 
     val sparkConf = new SparkConf()
       .setAppName("VideoPlayTimeApplication")
-//      .setMaster("local[2]")
+          .setMaster("local[2]")
 
     val ssc = new StreamingContext(sparkConf, Seconds(5))
     ssc.checkpoint(checkPointinPath)
@@ -98,7 +100,7 @@ object VideoPlayTimeApplication {
     val mqLines = ssc.receiverStream(new FanoutReceiver(ssc, rabbitmqHost, rabbitmqPort, rabbitmaPassword, rabbitmaPassword))
 
 
-    val userplayTime = mqLines.map((x: String) => {
+    val userplayTime = mqLines.repartition(3).map((x: String) => {
 
       val lineFiled = x.split("=")
 
@@ -152,20 +154,21 @@ object VideoPlayTimeApplication {
     }
 
     var result = userplayTime.updateStateByKey(newUpdateFunc)
-    result.print()
+
     result.foreachRDD(rdd => {
       val sc = rdd.context
 
       val conf = HBaseConfiguration.create()
-      conf.set("hbase.zookeeper.quorum", "192.168.100.191")
+      conf.set("hbase.zookeeper.quorum", "192.168.100.49")
       conf.set("hbase.zookeeper.property.clientPort", "2181")
+      conf.set("hbase.master", "192.168.100.49:60010")
       conf.set("hbase.rootdir", "/hbase")
 
 
       val jobConf = new JobConf(conf)
 
       jobConf.setOutputFormat(classOf[TableOutputFormat])
-      jobConf.set(TableOutputFormat.OUTPUT_TABLE, "test_tody_videoplay")
+      jobConf.set(TableOutputFormat.OUTPUT_TABLE, "tody_videoplay")
 
       //      sc.hadoopConfiguration.set(TableOutputFormat.OUTPUT_TABLE, "test_tody_videoplay")
       //
@@ -187,6 +190,7 @@ object VideoPlayTimeApplication {
 
         (new ImmutableBytesWritable, put)
       })
+
       hbaserdd.saveAsHadoopDataset(jobConf)
 
       //      rdd.foreach(t => {

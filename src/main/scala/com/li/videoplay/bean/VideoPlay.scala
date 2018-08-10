@@ -13,7 +13,9 @@ class VideoPlay(
                  val videoIdWithTeacher: String,
                  val videoIdWithoutTeacher: String,
                  val joinCode: String,
-                 val syllabusId: Long
+                 val syllabusId: Long,
+                 val classId: Long,
+                 val coursewareId: Long
                ) {
   override def toString: String =
     "rid:" + rid +
@@ -25,18 +27,22 @@ class VideoPlay(
       "|videoIdWithTeacher:" + videoIdWithTeacher +
       "|videoIdWithoutTeacher:" + videoIdWithoutTeacher +
       "|joinCode:" + joinCode +
-      "|syllabusId:" + syllabusId
+      "|syllabusId:" + syllabusId +
+      "|classId:" + classId +
+      "|coursewareId:" + coursewareId
 
   def show: String = rid +
-      "," + playTime +
-      "," + wholeTime +
-      "," + userPlayTime +
-      "," + roomId +
-      "," + sessionId +
-      "," + videoIdWithTeacher +
-      "," + videoIdWithoutTeacher +
-      "," + joinCode +
-      "," + syllabusId
+    "," + playTime +
+    "," + wholeTime +
+    "," + userPlayTime +
+    "," + roomId +
+    "," + sessionId +
+    "," + videoIdWithTeacher +
+    "," + videoIdWithoutTeacher +
+    "," + joinCode +
+    "," + syllabusId +
+    "," + classId +
+    "," + coursewareId
 
 }
 
