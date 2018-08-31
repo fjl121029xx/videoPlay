@@ -188,8 +188,8 @@ object VideoPlayTimeApplication {
       conf.set("hbase.rootdir", "/hbase")
       conf.set("hbase.client.retries.number", "3")
       conf.set("hbase.rpc.timeout", "2000")
-      conf.set("hbase.client.operation.timeout", "3000")
-      conf.set("hbase.client.scanner.timeout.period", "10000")
+      conf.set("hbase.client.operation.timeout", "30")
+      conf.set("hbase.client.scanner.timeout.period", "100")
 
       val jobConf = new JobConf(conf)
 
