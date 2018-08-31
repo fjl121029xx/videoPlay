@@ -15,9 +15,9 @@ import org.apache.hadoop.mapred.JobConf
 
 object VideoPlayTimeApplication {
 
-//  val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreaming/videoplay/checkpoint/data"
-    val checkPointinPath = "D:\\tmp\\checkpoint"
-  val rabbitmqHost = "192.168.100.21"
+  val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreaming/videoplay/checkpoint/data"
+  //  val checkPointinPath = "D:\\tmp\\checkpoint"
+  val rabbitmqHost = "192.168.100.153"
   val rabbitmqPort = 5672
   val rabbitmqUser = "rabbitmq_ztk"
   val rabbitmaPassword = "rabbitmq_ztk"
@@ -92,10 +92,11 @@ object VideoPlayTimeApplication {
 
     val sparkConf = new SparkConf()
       .setAppName("VideoPlayTimeApplication")
-          .setMaster("local[2]")
+    //          .setMaster("local[2]")
 
-    val ssc = new StreamingContext(sparkConf, Seconds(5))
+    val ssc = new StreamingContext(sparkConf, Seconds(10))
     ssc.checkpoint(checkPointinPath)
+    ssc.remember(Durations.milliseconds(24 * 3600 * 1000))
 
     val mqLines = ssc.receiverStream(new FanoutReceiver(ssc, rabbitmqHost, rabbitmqPort, rabbitmaPassword, rabbitmaPassword))
 
@@ -149,21 +150,22 @@ object VideoPlayTimeApplication {
       }
 
       Option(tmptime + "=" + playTime)
-
-
     }
 
     var result = userplayTime.updateStateByKey(newUpdateFunc)
 
-    result.foreachRDD(rdd => {
+    result.repartition(1).foreachRDD(rdd => {
       val sc = rdd.context
 
       val conf = HBaseConfiguration.create()
-      conf.set("hbase.zookeeper.quorum", "192.168.100.49")
+      conf.set("hbase.zookeeper.quorum", "192.168.100.2,192.168.100.3,192.168.100.4")
       conf.set("hbase.zookeeper.property.clientPort", "2181")
-      conf.set("hbase.master", "192.168.100.49:60010")
+      //      conf.set("hbase.master", "192.168.100.2:60010")
       conf.set("hbase.rootdir", "/hbase")
-
+      conf.set("hbase.client.retries.number", "3")
+      conf.set("hbase.rpc.timeout", "2000")
+      conf.set("hbase.client.operation.timeout", "3000")
+      conf.set("hbase.client.scanner.timeout.period", "10000")
 
       val jobConf = new JobConf(conf)
 
@@ -178,20 +180,47 @@ object VideoPlayTimeApplication {
       //      job.setOutputFormatClass(classOf[TableOutputFormat[ImmutableBytesWritable]])
 
       //user today=time
-      val hbaserdd = rdd.map(t => {
-        val username = t._1
-        val todaytime = t._2
 
-        val today = todaytime.split("=")(0)
-        val time = todaytime.split("=")(1)
 
-        val put = new Put(Bytes.toBytes(today + "-" + username)) //行健的值
-        put.add(Bytes.toBytes("playinfo"), Bytes.toBytes("playTime"), Bytes.toBytes(time))
+      val hbasePar = rdd.mapPartitions {
+        ite: Iterator[Tuple2[String, String]] =>
 
-        (new ImmutableBytesWritable, put)
-      })
+          var lis: Seq[Tuple2[ImmutableBytesWritable, Put]] = Seq()
 
-      hbaserdd.saveAsHadoopDataset(jobConf)
+
+          while (ite.hasNext) {
+            var t = ite.next()
+
+            val username = t._1
+            val todaytime = t._2
+
+            val today = todaytime.split("=")(0)
+            val time = todaytime.split("=")(1)
+
+            val put = new Put(Bytes.toBytes(today + "-" + username)) //行健的值
+            put.add(Bytes.toBytes("playinfo"), Bytes.toBytes("playTime"), Bytes.toBytes(time))
+
+            lis = (new ImmutableBytesWritable, put) +: lis
+          }
+          lis.iterator
+      }
+
+      hbasePar.saveAsHadoopDataset(jobConf)
+
+      //      val hbaserdd = rdd.map(t => {
+      //        val username = t._1
+      //        val todaytime = t._2
+      //
+      //        val today = todaytime.split("=")(0)
+      //        val time = todaytime.split("=")(1)
+      //
+      //        val put = new Put(Bytes.toBytes(today + "-" + username)) //行健的值
+      //        put.add(Bytes.toBytes("playinfo"), Bytes.toBytes("playTime"), Bytes.toBytes(time))
+      //
+      //        (new ImmutableBytesWritable, put)
+      //      })
+      //
+      //      hbaserdd.saveAsHadoopDataset(jobConf)
 
       //      rdd.foreach(t => {
       //        println(t._1)

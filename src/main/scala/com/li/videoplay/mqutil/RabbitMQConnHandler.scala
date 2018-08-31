@@ -73,9 +73,24 @@ class RabbitMQConnHandler(var host: String) {
     val channel = connection.createChannel();
     channel.exchangeDeclare(exchangeName, exchangeType)
     val queueName = "log-fb4"
+    channel.queueDeclare(queueName, false, false, false, null)
+    channel.queueBind(queueName, exchangeName, "")
 
-    channel.queueDeclare(queueName,false,false,false,null)
-    channel.queueBind(queueName,exchangeName,"")
+    channel
+  }
+
+  def getBasicDeclareChannel(
+                              exchangeName: String = "",
+                              exchangeType: String = "topic",
+                              queueName: String = "",
+                              routingkey: String = ""
+                            ): Channel = {
+    val channel = connection.createChannel();
+
+    channel.exchangeDeclare(exchangeName, exchangeType)
+
+    channel.queueDeclare(queueName, false, false, false, null);
+    channel.queueBind(queueName, exchangeName, routingkey);
 
     channel
   }
