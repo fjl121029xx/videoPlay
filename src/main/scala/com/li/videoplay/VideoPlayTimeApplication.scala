@@ -101,16 +101,40 @@ object VideoPlayTimeApplication {
     val mqLines = ssc.receiverStream(new FanoutReceiver(ssc, rabbitmqHost, rabbitmqPort, rabbitmaPassword, rabbitmaPassword))
 
 
-    val userplayTime = mqLines.repartition(3).map((x: String) => {
+    //    val userplayTime = mqLines.repartition(3).map((x: String) => {
+    //
+    //      val lineFiled = x.split("=")
+    //
+    //      val uname = lineFiled(2)
+    //      val recordTime = lineFiled(4)
+    //      val userplayTime = lineFiled(3).split("\\|")(3).split(":")(1)
+    //
+    //      (uname, userplayTime + "=" + recordTime)
+    //    })
 
-      val lineFiled = x.split("=")
+    val userplayTime = mqLines.repartition(3).mapPartitions {
+      ite: Iterator[String] =>
 
-      val uname = lineFiled(2)
-      val recordTime = lineFiled(4)
-      val userplayTime = lineFiled(3).split("\\|")(3).split(":")(1)
+        var lis: Seq[Tuple2[String, String]] = Seq()
 
-      (uname, userplayTime + "=" + recordTime)
-    })
+        while (ite.hasNext) {
+          var t = ite.next()
+
+          val lineFiled = t.split("=")
+
+          val uname = lineFiled(2)
+          val recordTime = lineFiled(4)
+          val userplayTime = lineFiled(3).split("\\|")(3).split(":")(1)
+
+
+          lis = (uname, userplayTime + "=" + recordTime) +: lis
+        }
+
+
+        lis.iterator
+    }
+
+
     //todayplaytime=2018_07_20=238
     val newUpdateFunc = (seq: Seq[String], last: Option[String]) => {
 
