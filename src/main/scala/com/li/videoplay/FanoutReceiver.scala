@@ -53,55 +53,64 @@ class FanoutReceiver(
 
     while (true) {
 
-      try {
-        val r = consumer.receiveMessage()
-        if (r.isRight) {
-          val (msg, deliveryTag) = r.right.get
-          if (deliveryTag > 0) {
-            val message = msg.split("=")
-            val obj = mapper.readValue(message(3).replace("\\", ""), classOf[VideoPlay])
-            val str = message(0) + "=" + message(1) + "=" + message(2) + "=" + obj.toString + "=" + message(4)
-            store(str)
+      //      try {
+      val r = consumer.receiveMessage()
+      if (r.isRight) {
+        val (msg, deliveryTag) = r.right.get
+        if (deliveryTag > 0) {
+          val message = msg.split("=")
 
-            val date = message(4).split("_");
-
-            val recordYear = date(0)
-            val recordMonth = date(1)
-            val recordDay = date(2)
-            val recordHour = date(3)
-            val recordMinute = date(3) + date(4)
+//          val me = message(3).replace("{","").replace("}","").replace(",","|")
 
 
-            val log = message(0) + "," +
-              message(1) + "," +
-              message(2) + "," +
-              obj.show + "," +
-              recordYear + "," +
-              recordMonth + "," +
-              recordDay + "," +
-              recordHour + "," +
-              recordMinute
+//          val me2 = message(3).replace("{","").replace("}","").replace("|",":")
 
-            logger.info("FanoutReceiver-233," + log)
-            //          my.doStuff(str)
-            consumer.basicAck(deliveryTag)
-          } else {
-            Thread.sleep(1000)
-          }
+          //          println(message(3).contains("\""))
+//          println(me)
+
+          val obj = mapper.readValue( message(3) , classOf[VideoPlay])
+          val str = message(0) + "=" + message(1) + "=" + message(2) + "=" + obj.toString + "=" + message(4)
+          store(str)
+
+          val date = message(4).split("_");
+
+          val recordYear = date(0)
+          val recordMonth = date(1)
+          val recordDay = date(2)
+          val recordHour = date(3)
+          val recordMinute = date(3) + date(4)
+
+
+          val log = message(0) + "," +
+            message(1) + "," +
+            message(2) + "," +
+            obj.show + "," +
+            recordYear + "," +
+            recordMonth + "," +
+            recordDay + "," +
+            recordHour + "," +
+            recordMinute
+
+          logger.info("FanoutReceiver-233," + log)
+          //          my.doStuff(str)
+          consumer.basicAck(deliveryTag)
         } else {
-          //报错
-          if (!mqHandler.connection.isOpen()) {
-            mqHandler.reInitConn
-          }
-          if (!fanoutChannnel.isOpen()) {
-            fanoutChannnel = mqHandler.getFanoutDeclareChannel(exchangeName)
-          }
+          Thread.sleep(1000)
         }
-      } catch {
-        case ex: Exception => {
-          ex.printStackTrace()
+      } else {
+        //报错
+        if (!mqHandler.connection.isOpen()) {
+          mqHandler.reInitConn
+        }
+        if (!fanoutChannnel.isOpen()) {
+          fanoutChannnel = mqHandler.getFanoutDeclareChannel(exchangeName)
         }
       }
+      //      } catch {
+      //        case ex: Exception => {
+      //          ex.printStackTrace()
+      //        }
+      //      }
 
     }
     consumer.close()
