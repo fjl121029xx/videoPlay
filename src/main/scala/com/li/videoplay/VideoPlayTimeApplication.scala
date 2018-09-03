@@ -16,7 +16,8 @@ import org.apache.hadoop.mapred.JobConf
 object VideoPlayTimeApplication {
 
   val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreaming/videoplay/checkpoint/data"
-  //  val checkPointinPath = "D:\\tmp\\checkpoint"
+//    val checkPointinPath = "D:\\tmp\\checkpoint"
+//  val rabbitmqHost = "192.168.100.21"
   val rabbitmqHost = "192.168.100.153"
   val rabbitmqPort = 5672
   val rabbitmqUser = "rabbitmq_ztk"
@@ -92,7 +93,8 @@ object VideoPlayTimeApplication {
 
     val sparkConf = new SparkConf()
       .setAppName("VideoPlayTimeApplication")
-    //          .setMaster("local[2]")
+      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+//              .setMaster("local[2]")
 
     val ssc = new StreamingContext(sparkConf, Seconds(10))
     ssc.checkpoint(checkPointinPath)
@@ -182,6 +184,7 @@ object VideoPlayTimeApplication {
       val sc = rdd.context
 
       val conf = HBaseConfiguration.create()
+//      conf.set("hbase.zookeeper.quorum", "192.168.100.29,192.168.100.27,192.168.100.28")
       conf.set("hbase.zookeeper.quorum", "192.168.100.2,192.168.100.3,192.168.100.4")
       conf.set("hbase.zookeeper.property.clientPort", "2181")
       //      conf.set("hbase.master", "192.168.100.2:60010")

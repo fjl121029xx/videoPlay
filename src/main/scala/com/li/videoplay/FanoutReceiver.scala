@@ -52,49 +52,57 @@ class FanoutReceiver(
     val consumer = new RabbitMQConsumer(fanoutChannnel, queueName)
 
     while (true) {
-      val r = consumer.receiveMessage()
-      if (r.isRight) {
-        val (msg, deliveryTag) = r.right.get
-        if (deliveryTag > 0) {
-          val message = msg.split("=")
-          val obj = mapper.readValue(message(3), classOf[VideoPlay])
-          val str = message(0) + "=" + message(1) + "=" + message(2) + "=" + obj.toString + "=" + message(4)
-          store(str)
 
-          val date = message(4).split("_");
+      try {
+        val r = consumer.receiveMessage()
+        if (r.isRight) {
+          val (msg, deliveryTag) = r.right.get
+          if (deliveryTag > 0) {
+            val message = msg.split("=")
+            val obj = mapper.readValue(message(3).replace("\\", ""), classOf[VideoPlay])
+            val str = message(0) + "=" + message(1) + "=" + message(2) + "=" + obj.toString + "=" + message(4)
+            store(str)
 
-          val recordYear = date(0)
-          val recordMonth = date(1)
-          val recordDay = date(2)
-          val recordHour = date(3)
-          val recordMinute = date(3) + date(4)
+            val date = message(4).split("_");
+
+            val recordYear = date(0)
+            val recordMonth = date(1)
+            val recordDay = date(2)
+            val recordHour = date(3)
+            val recordMinute = date(3) + date(4)
 
 
-          val log = message(0) + "," +
-            message(1) + "," +
-            message(2) + "," +
-            obj.show + "," +
-            recordYear + "," +
-            recordMonth + "," +
-            recordDay + "," +
-            recordHour + "," +
-            recordMinute
+            val log = message(0) + "," +
+              message(1) + "," +
+              message(2) + "," +
+              obj.show + "," +
+              recordYear + "," +
+              recordMonth + "," +
+              recordDay + "," +
+              recordHour + "," +
+              recordMinute
 
-          logger.info("FanoutReceiver-233," + log)
-          //          my.doStuff(str)
-          consumer.basicAck(deliveryTag)
+            logger.info("FanoutReceiver-233," + log)
+            //          my.doStuff(str)
+            consumer.basicAck(deliveryTag)
+          } else {
+            Thread.sleep(1000)
+          }
         } else {
-          Thread.sleep(1000)
+          //报错
+          if (!mqHandler.connection.isOpen()) {
+            mqHandler.reInitConn
+          }
+          if (!fanoutChannnel.isOpen()) {
+            fanoutChannnel = mqHandler.getFanoutDeclareChannel(exchangeName)
+          }
         }
-      } else {
-        //报错
-        if (!mqHandler.connection.isOpen()) {
-          mqHandler.reInitConn
-        }
-        if (!fanoutChannnel.isOpen()) {
-          fanoutChannnel = mqHandler.getFanoutDeclareChannel(exchangeName)
+      } catch {
+        case ex: Exception => {
+          ex.printStackTrace()
         }
       }
+
     }
     consumer.close()
     mqHandler.close()
