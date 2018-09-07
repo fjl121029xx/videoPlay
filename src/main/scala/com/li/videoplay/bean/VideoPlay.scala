@@ -56,8 +56,7 @@ object TopicRecord {
 
     mapper.registerModule(DefaultScalaModule)
 
-    val json = "{\"joinCode\":\"\",\"playTime\":1292,\"roomId\":\"18061896225817\",\"sessionId\":\"\",\"userPlayTime\":0,\"videoIdWithTeacher\":\"\",\"videoIdWithoutTeacher\":\"\",\"wholeTime\":6542}"
-
+    val json = "{\"joinCode\":\"\",\"playTime\":190,\"roomId\":\"18050797980794\",\"sessionId\":\"201806021\",\"userPlayTime\":0,\"videoIdWithTeacher\":\"\",\"videoIdWithoutTeacher\":\"\",\"wholeTime\":3727}"
 
     val obj = mapper.readValue(json, classOf[VideoPlay])
 
