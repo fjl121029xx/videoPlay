@@ -16,11 +16,11 @@ import org.apache.spark.storage.StorageLevel
 
 object VideoPlayTimeApplication {
 
-  val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreaming/videoplay/checkpoint/data"
-  val rabbitmqHost = "192.168.100.153"
+    val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreaming/videoplay/checkpoint/data"
+    val rabbitmqHost = "192.168.100.153"
 
-//      val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreamingTest/videoplay/checkpoint/data"
-//    val rabbitmqHost = "192.168.100.21"
+//  val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreamingTest/videoplay/checkpoint/data"
+//  val rabbitmqHost = "192.168.100.21"
 
   val rabbitmqPort = 5672
   val rabbitmqUser = "rabbitmq_ztk"
@@ -97,14 +97,14 @@ object VideoPlayTimeApplication {
     val sparkConf = new SparkConf()
       .setAppName("VideoPlayTimeApplication")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-//              .setMaster("local[2]")
+    //              .setMaster("local[2]")
 
     val ssc = new StreamingContext(sparkConf, Seconds(10))
     ssc.checkpoint(checkPointinPath)
-//    ssc.remember(Durations.milliseconds(24 * 3600 * 1000))
+    //    ssc.remember(Durations.milliseconds(24 * 3600 * 1000))
 
     val mqLines = ssc.receiverStream(new FanoutReceiver(ssc, rabbitmqHost, rabbitmqPort, rabbitmaPassword, rabbitmaPassword))
-//      .persist(StorageLevel.MEMORY_AND_DISK_2)
+    //      .persist(StorageLevel.MEMORY_AND_DISK_2)
 
     //    val userplayTime = mqLines.repartition(3).map((x: String) => {
     //
@@ -188,7 +188,7 @@ object VideoPlayTimeApplication {
 
       val conf = HBaseConfiguration.create()
 //      conf.set("hbase.zookeeper.quorum", "192.168.100.29,192.168.100.27,192.168.100.28")
-      conf.set("hbase.zookeeper.quorum", "192.168.100.2,192.168.100.3,192.168.100.4")
+            conf.set("hbase.zookeeper.quorum", "192.168.100.2,192.168.100.3,192.168.100.4")
       conf.set("hbase.zookeeper.property.clientPort", "2181")
       //      conf.set("hbase.master", "192.168.100.2:60010")
       conf.set("hbase.rootdir", "/hbase")
