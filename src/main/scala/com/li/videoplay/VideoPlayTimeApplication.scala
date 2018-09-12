@@ -99,7 +99,7 @@ object VideoPlayTimeApplication {
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     //              .setMaster("local[2]")
 
-    val ssc = new StreamingContext(sparkConf, Seconds(10))
+    val ssc = new StreamingContext(sparkConf, Seconds(60))
     ssc.checkpoint(checkPointinPath)
     //    ssc.remember(Durations.milliseconds(24 * 3600 * 1000))
 
