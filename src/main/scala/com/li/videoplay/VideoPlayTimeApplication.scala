@@ -14,13 +14,15 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapred.JobConf
 import org.apache.spark.storage.StorageLevel
 
+import scala.collection.mutable.ArrayBuffer
+
 object VideoPlayTimeApplication {
 
-    val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreaming/videoplay/checkpoint/data"
-    val rabbitmqHost = "192.168.100.153"
+  val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreaming/videoplay/checkpoint/data"
+  val rabbitmqHost = "192.168.100.153"
 
-//  val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreamingTest/videoplay/checkpoint/data"
-//  val rabbitmqHost = "192.168.100.21"
+  //    val checkPointinPath = "hdfs://192.168.100.26:8020/sparkstreamingTest/videoplay/checkpoint/data"
+  //    val rabbitmqHost = "192.168.100.21"
 
   val rabbitmqPort = 5672
   val rabbitmqUser = "rabbitmq_ztk"
@@ -95,7 +97,7 @@ object VideoPlayTimeApplication {
                      checkPointinPath: String): StreamingContext = {
 
     val sparkConf = new SparkConf()
-      .setAppName("VideoPlayTimeApplication")
+      .setAppName("VideoPlayTimeApplicationTest")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     //              .setMaster("local[2]")
 
@@ -120,7 +122,8 @@ object VideoPlayTimeApplication {
     val userplayTime = mqLines.repartition(3).mapPartitions {
       ite: Iterator[String] =>
 
-        var lis: Seq[Tuple2[String, String]] = Seq()
+        var buffer = new ArrayBuffer[Tuple2[String, String]]()
+
 
         while (ite.hasNext) {
           var t = ite.next()
@@ -131,12 +134,11 @@ object VideoPlayTimeApplication {
           val recordTime = lineFiled(4)
           val userplayTime = lineFiled(3).split("\\|")(3).split(":")(1)
 
-
-          lis = (uname, userplayTime + "=" + recordTime) +: lis
+          buffer += new Tuple2(uname, userplayTime + "=" + recordTime)
         }
 
 
-        lis.iterator
+        buffer.iterator
     }
 
 
@@ -187,8 +189,8 @@ object VideoPlayTimeApplication {
       val sc = rdd.context
 
       val conf = HBaseConfiguration.create()
-//      conf.set("hbase.zookeeper.quorum", "192.168.100.29,192.168.100.27,192.168.100.28")
-            conf.set("hbase.zookeeper.quorum", "192.168.100.2,192.168.100.3,192.168.100.4")
+      //            conf.set("hbase.zookeeper.quorum", "192.168.100.29,192.168.100.27,192.168.100.28")
+      conf.set("hbase.zookeeper.quorum", "192.168.100.2,192.168.100.3,192.168.100.4")
       conf.set("hbase.zookeeper.property.clientPort", "2181")
       //      conf.set("hbase.master", "192.168.100.2:60010")
       conf.set("hbase.rootdir", "/hbase")
@@ -215,8 +217,8 @@ object VideoPlayTimeApplication {
       val hbasePar = rdd.mapPartitions {
         ite: Iterator[Tuple2[String, String]] =>
 
-          var lis: Seq[Tuple2[ImmutableBytesWritable, Put]] = Seq()
-
+          //          var lis: Seq[] = Seq()
+          var buffer = new ArrayBuffer[Tuple2[ImmutableBytesWritable, Put]]()
 
           while (ite.hasNext) {
             var t = ite.next()
@@ -230,9 +232,10 @@ object VideoPlayTimeApplication {
             val put = new Put(Bytes.toBytes(today + "-" + username)) //行健的值
             put.add(Bytes.toBytes("playinfo"), Bytes.toBytes("playTime"), Bytes.toBytes(time))
 
-            lis = (new ImmutableBytesWritable, put) +: lis
+            buffer += new Tuple2(new ImmutableBytesWritable, put)
+            //            lis =  +: lis
           }
-          lis.iterator
+          buffer.iterator
       }
 
       hbasePar.saveAsHadoopDataset(jobConf)
