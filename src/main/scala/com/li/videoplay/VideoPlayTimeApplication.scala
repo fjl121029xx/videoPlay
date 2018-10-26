@@ -97,7 +97,7 @@ object VideoPlayTimeApplication {
                      checkPointinPath: String): StreamingContext = {
 
     val sparkConf = new SparkConf()
-      .setAppName("VideoPlayTimeApplicationTest")
+      .setAppName("VideoPlayTimeApplication")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     //              .setMaster("local[2]")
 
